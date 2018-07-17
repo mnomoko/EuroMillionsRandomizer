@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { BackHandler, ListView, StyleSheet, Text, View } from 'react-native';
+import {BackHandler, Dimensions, FlatList, StyleSheet, Text, View} from 'react-native';
 
 import { Tirage } from "../commons/tirage";
 import {SQLite} from "expo";
@@ -10,8 +10,12 @@ const db = SQLite.openDatabase('db.db');
 
 export class HistoriqueComponent extends Component {
 
+    /* static navigationOptions = {
+        title: 'Historique',
+    }; */
+
     state = {
-        dataSource: new ListView.DataSource({rowHasChanged: (r1, r2) => r1 !== r2})
+        tirages: []
     };
 
     executeSql = async (sql, params = []) => {
@@ -22,10 +26,6 @@ export class HistoriqueComponent extends Component {
 
     init = async() => {
         await this.select();
-    };
-
-    deleteTirage = (tirage) => {
-
     };
 
     select = () => {
@@ -43,8 +43,8 @@ export class HistoriqueComponent extends Component {
 
                 tirages.push(tirage);
             }
-            let ds = new ListView.DataSource({rowHasChanged: (r1, r2) => r1 !== r2});
-            this.setState({dataSource: ds.cloneWithRows(tirages)});
+            this.setState({tirages: tirages});
+            this.setState({isLoaded: true});
         });
     };
 
@@ -67,38 +67,37 @@ export class HistoriqueComponent extends Component {
         return true;
     }
 
-    static navigationOptions = {
-        title: 'Historique',
+    renderSeparator = () => {
+        return (<View style={ styles.separator }/>);
     };
 
-    _renderRow(tirage) {
+    _renderItem = ({item: tirage}) => (
+        <View style={{ flexDirection:"row", justifyContent: 'center', marginTop: 20 }}>
+            <Text style={ styles.numberCircle }> { tirage.chiffres[0] }</Text>
+            <Text style={ styles.numberCircle }> { tirage.chiffres[1] }</Text>
+            <Text style={ styles.numberCircle }> { tirage.chiffres[2] }</Text>
+            <Text style={ styles.numberCircle }> { tirage.chiffres[3] }</Text>
+            <Text style={ styles.numberCircle }> { tirage.chiffres[4] }</Text>
+            <Text style={ styles.numberSquare }> { tirage.etoiles[0] }</Text>
+            <Text style={ styles.numberSquare }> { tirage.etoiles[1] }</Text>
+        </View>
 
-        return (
-            <View style={{ flexDirection:"row", justifyContent: 'center', marginTop: 20 }}>
-                <Text style={ styles.numberCircle }> { tirage.chiffres[0] }</Text>
-                <Text style={ styles.numberCircle }> { tirage.chiffres[1] }</Text>
-                <Text style={ styles.numberCircle }> { tirage.chiffres[2] }</Text>
-                <Text style={ styles.numberCircle }> { tirage.chiffres[3] }</Text>
-                <Text style={ styles.numberCircle }> { tirage.chiffres[4] }</Text>
-                <Text style={ styles.numberSquare }> { tirage.etoiles[0] }</Text>
-                <Text style={ styles.numberSquare }> { tirage.etoiles[1] }</Text>
-            </View>
-        )
-    }
+    );
 
     render() {
+        const { tirages } = this.state;
         return (
             <View>
-                <View style={{ alignItems: 'center', justifyContent: 'center' }}>
-                    <Text> Liste </Text>
-                </View>
-                <ListView
-                    dataSource={this.state.dataSource }
-                    renderRow={this._renderRow.bind(this)}
-                    renderSeparator={(sectionId, rowId) => <View key={rowId} style={styles.separator} />}
+                <FlatList
+                    data={ tirages }
+                    style={{ flexGrow: 1}}
+                    renderItem={this._renderItem.bind(this)}
+                    keyExtractor={item => item.id}
+                    ItemSeparatorComponent={this.renderSeparator}
+                    contentContainerStyle={{paddingBottom:30}}
                 />
             </View>
-        )
+        );
     }
 }
 
@@ -107,7 +106,6 @@ const styles = StyleSheet.create({
      * Removed for brevity
      */
     separator: {
-        flex: 1,
         marginTop: 20,
         height: StyleSheet.hairlineWidth,
         backgroundColor: '#8E8E8E',
@@ -133,5 +131,5 @@ const styles = StyleSheet.create({
         color: '#666666',
         textAlign: 'center',
         margin: 2
-    }
+    },
 });

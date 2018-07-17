@@ -2,6 +2,7 @@ import React, { Component } from 'react';
 import { BackHandler, Button, StyleSheet, Text, View } from 'react-native';
 import {Tirage} from "../commons/tirage";
 import {SQLite} from "expo";
+import Utils from "./../commons/utils";
 
 const db = SQLite.openDatabase('db.db');
 
@@ -25,9 +26,9 @@ export class AccueilComponent extends Component {
         this.handleBackButtonClick = this.handleBackButtonClick.bind(this);
     }
 
-    static navigationOptions = {
+    /* static navigationOptions = {
         title: 'EuroMillions Randomizer',
-    };
+    }; */
 
     executeSql = async (sql, params = []) => {
         return new Promise((resolve, reject) => db.transaction(tx => {
@@ -36,7 +37,8 @@ export class AccueilComponent extends Component {
     };
 
     insert = async (tirage: Tirage) => {
-        await this.executeSql('insert into tirage (c1, c2, c3, c4, c5, e1, e2) values (?, ?, ?, ?, ?, ?, ?)', [tirage.chiffres[0], tirage.chiffres[1], tirage.chiffres[2], tirage.chiffres[3], tirage.chiffres[4], tirage.etoiles[0], tirage.etoiles[1], ]);
+        let id = Utils.generateID();
+        await this.executeSql('insert into tirage (id, c1, c2, c3, c4, c5, e1, e2) values (?, ?, ?, ?, ?, ?, ?, ?)', [id, tirage.chiffres[0], tirage.chiffres[1], tirage.chiffres[2], tirage.chiffres[3], tirage.chiffres[4], tirage.etoiles[0], tirage.etoiles[1], ]);
     };
 
     // noinspection JSAnnotator
