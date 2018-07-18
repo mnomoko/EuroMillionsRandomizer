@@ -1,21 +1,20 @@
 import React, { Component } from 'react';
-import {BackHandler, Dimensions, FlatList, StyleSheet, Text, View} from 'react-native';
+import {BackHandler, FlatList, StyleSheet, Text, View} from 'react-native';
+import Swipeout from 'react-native-swipeout';
 
 import { Tirage } from "../commons/tirage";
 import {SQLite} from "expo";
 
 import 'prop-types';
+import {Icon} from "native-base";
 
 const db = SQLite.openDatabase('db.db');
 
 export class HistoriqueComponent extends Component {
 
-    /* static navigationOptions = {
-        title: 'Historique',
-    }; */
-
     state = {
-        tirages: []
+        tirages: [],
+        activeRow: null
     };
 
     executeSql = async (sql, params = []) => {
@@ -33,6 +32,7 @@ export class HistoriqueComponent extends Component {
             let tirages :Tirage[] = [];
             for(let t of result) {
                 let tirage: Tirage = new Tirage();
+                tirage.id = t['id'];
                 tirage.chiffres[0] = t['c1'];
                 tirage.chiffres[1] = t['c2'];
                 tirage.chiffres[2] = t['c3'];
@@ -46,6 +46,22 @@ export class HistoriqueComponent extends Component {
             this.setState({tirages: tirages});
             this.setState({isLoaded: true});
         });
+    };
+
+    deleteById = async(id) => {
+        await this.executeSql('delete from tirage where id = ?', [id]);
+    };
+
+    deleteItem = (tirage) => {
+        this.selectById(tirage.id).then(() => {
+            this.deleteById(tirage.id).then(() => {
+                this.select();
+            });
+        });
+    };
+
+    selectById = async(id) => {
+        await this.executeSql('select * from tirage where id = ?', [id, ]);
     };
 
     constructor(props) {
@@ -71,18 +87,73 @@ export class HistoriqueComponent extends Component {
         return (<View style={ styles.separator }/>);
     };
 
-    _renderItem = ({item: tirage}) => (
-        <View style={{ flexDirection:"row", justifyContent: 'center', marginTop: 20 }}>
-            <Text style={ styles.numberCircle }> { tirage.chiffres[0] }</Text>
-            <Text style={ styles.numberCircle }> { tirage.chiffres[1] }</Text>
-            <Text style={ styles.numberCircle }> { tirage.chiffres[2] }</Text>
-            <Text style={ styles.numberCircle }> { tirage.chiffres[3] }</Text>
-            <Text style={ styles.numberCircle }> { tirage.chiffres[4] }</Text>
-            <Text style={ styles.numberSquare }> { tirage.etoiles[0] }</Text>
-            <Text style={ styles.numberSquare }> { tirage.etoiles[1] }</Text>
-        </View>
+    onSwipeOpen(item, rowId, direction) {
+        this.setState({ activeRow: item.id });
+    }
 
-    );
+    onSwipeClose(item, rowId, direction) {
+        if (item.noteId === this.state.activeRow && typeof direction !== 'undefined') {
+            this.setState({ activeRow: null });
+        }
+    }
+
+    onDeleteItem = (item) => {
+        this.deleteItem(item);
+    };
+
+    _renderItem = ({item: tirage}) => {
+        const swipeBtns = [
+            {
+                component: (
+                    <View
+                        style={{
+                            flex: 1,
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            flexDirection: 'column',
+                        }}
+                    >
+                        <Icon name="trash" size={35}/>
+                    </View>
+                ),
+                backgroundColor: '#ff0500',
+                underlayColor: 'rgba(0, 0, 0, 1, 0.6)',
+                onPress: () => {
+                    this.onDeleteItem(tirage);
+                },
+            },
+        ];
+
+        const swipeSettings = {
+            autoClose: true,
+            close: tirage.id !== this.state.activeRow,
+            onClose: (secId, rowId, direction) => this.onSwipeClose(tirage, rowId, direction),
+            onOpen: (secId, rowId, direction) => this.onSwipeOpen(tirage, rowId, direction),
+            right: [
+                {onPress: () => this.onDeleteItem(tirage), text: 'Delete', type: 'delete', icon: 'trashcan'}
+            ],
+            right: swipeBtns,
+            rowId: tirage.id,
+            sectionId: 1
+        };
+
+        return (
+            <View>
+                <Swipeout {...swipeSettings}>
+                    <View style={{flexDirection: "row", justifyContent: 'center', marginTop: 20, marginBottom: 20}}>
+                        <Text style={styles.numberCircle}> {tirage.chiffres[0]}</Text>
+                        <Text style={styles.numberCircle}> {tirage.chiffres[1]}</Text>
+                        <Text style={styles.numberCircle}> {tirage.chiffres[2]}</Text>
+                        <Text style={styles.numberCircle}> {tirage.chiffres[3]}</Text>
+                        <Text style={styles.numberCircle}> {tirage.chiffres[4]}</Text>
+                        <Text style={styles.numberSquare}> {tirage.etoiles[0]}</Text>
+                        <Text style={styles.numberSquare}> {tirage.etoiles[1]}</Text>
+                    </View>
+                </Swipeout>
+            </View>
+        )
+
+    };
 
     render() {
         const { tirages } = this.state;
@@ -94,7 +165,6 @@ export class HistoriqueComponent extends Component {
                     renderItem={this._renderItem.bind(this)}
                     keyExtractor={item => item.id}
                     ItemSeparatorComponent={this.renderSeparator}
-                    contentContainerStyle={{paddingBottom:30}}
                 />
             </View>
         );
@@ -106,7 +176,7 @@ const styles = StyleSheet.create({
      * Removed for brevity
      */
     separator: {
-        marginTop: 20,
+        marginTop: 2,
         height: StyleSheet.hairlineWidth,
         backgroundColor: '#8E8E8E',
     },

@@ -94,7 +94,7 @@ export default class App extends Component {
     componentDidMount() {
         db.transaction(tx => {
             tx.executeSql(
-                'create table if not exists tirage (id integer primary key not null, c1 int, c2 int, c3 int, c4 int, c5 int, e1 int, e2 int);'
+                'create table if not exists tirage (id text primary key not null, c1 int, c2 int, c3 int, c4 int, c5 int, e1 int, e2 int);'
             );
         });
     }
