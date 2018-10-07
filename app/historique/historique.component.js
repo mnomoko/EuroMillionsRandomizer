@@ -116,7 +116,7 @@ export class HistoriqueComponent extends Component {
                         <Icon name="trash" size={35}/>
                     </View>
                 ),
-                backgroundColor: '#ff0500',
+                backgroundColor: '#b1b1b1',
                 underlayColor: 'rgba(0, 0, 0, 1, 0.6)',
                 onPress: () => {
                     this.onDeleteItem(tirage);
