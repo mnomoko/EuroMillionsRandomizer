@@ -1,4 +1,4 @@
-import Expo from 'expo';
+import { Font, SQLite } from 'expo';
 import React, { Component } from 'react';
 import { Container, Icon } from "native-base";
 import {createDrawerNavigator, createStackNavigator, DrawerNavigator, StackNavigator} from 'react-navigation';
@@ -6,7 +6,7 @@ import { AccueilComponent } from "./app/accueil/accueil.component";
 import {HistoriqueComponent} from "./app/historique/historique.component";
 import {ParametreComponent} from "./app/parametre/parametre.component";
 
-const db = Expo.SQLite.openDatabase('db.db');
+const db = SQLite.openDatabase('db.db');
 
 getNavigationOptions = (title) => {
     return {
@@ -83,7 +83,7 @@ export default class App extends Component {
     }
 
     async componentWillMount() {
-        await Expo.Font.loadAsync({
+        await Font.loadAsync({
             Roboto: require("native-base/Fonts/Roboto.ttf"),
             Roboto_medium: require("native-base/Fonts/Roboto_medium.ttf"),
             Ionicons: require("native-base/Fonts/Ionicons.ttf")
